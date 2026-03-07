@@ -1,28 +1,20 @@
 {
-  "plugins": ["jest", "@typescript-eslint"],
   "extends": [
-    "plugin:github/recommended",
-    "eslint:recommended",
-    "plugin:prettier/recommended",
-    "plugin:import/errors",
-    "plugin:import/warnings",
-    "plugin:import/typescript"
+    "next/core-web-vitals",
+    "prettier"
   ],
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "ecmaVersion": "latest",
-    "sourceType": "module",
-    "project": "./tsconfig.json"
-  },
-  "globals": {
-    "globalThis": false
-  },
   "rules": {
-    "i18n-text/no-en": "off"
-  },
-  "env": {
-    "node": true,
-    "es6": true,
-    "jest/globals": true
+    "react-hooks/exhaustive-deps": "warn",
+    "@next/next/no-html-link-for-pages": "off",
+    "prefer-const": "warn",
+    "no-console": [
+      "warn",
+      {
+        "allow": [
+          "warn",
+          "error"
+        ]
+      }
+    ]
   }
 }
