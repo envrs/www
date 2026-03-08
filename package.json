@@ -15,6 +15,7 @@
     "db:seed": "node scripts/seed.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.0",
     "@ai-sdk/vercel": "^2.0.37",
     "@khulnasoft/style-guide": "^4.0.0",
     "@supabase/ssr": "^0.1.0",
