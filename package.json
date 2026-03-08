@@ -11,12 +11,16 @@
     "format": "prettier --write '**/*.{ts,tsx,js,json}'",
     "format-check": "prettier --check '**/*.{ts,tsx,js,json}'",
     "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
     "db:migrate": "node scripts/migrate.js",
     "db:seed": "node scripts/seed.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.20.0",
+    "@ai-sdk/anthropic": "^3.0.58",
     "@ai-sdk/vercel": "^2.0.37",
+    "@anthropic-ai/sdk": "^0.20.0",
     "@khulnasoft/style-guide": "^4.0.0",
     "@supabase/ssr": "^0.1.0",
     "@supabase/supabase-js": "^2.38.0",
@@ -45,10 +49,13 @@
     "@types/react-dom": "^19.0.0",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "@vitest/ui": "^1.0.0",
     "eslint": "^8.56.0",
     "eslint-config-next": "^15.0.0",
     "eslint-config-prettier": "^9.1.0",
     "prettier": "^3.1.1",
-    "tailwind-merge": "^2.2.1"
+    "tailwind-merge": "^2.2.1",
+    "vitest": "^1.0.0"
   }
 }
