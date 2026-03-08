@@ -14,18 +14,12 @@ export async function POST(request: NextRequest) {
     // Verify webhook signature
     const signature = request.headers.get('x-hub-signature-256');
     if (!signature) {
-      return NextResponse.json(
-        { error: 'Missing signature' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
     }
 
     const payload = await request.text();
     if (!verifyWebhookSignature(payload, signature)) {
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
     const webhookPayload = parseWebhookPayload(payload);
@@ -101,14 +95,8 @@ export async function POST(request: NextRequest) {
       .eq('id', prRecord?.id);
 
     // Post summary comment
-    const totalIssues = analyses.reduce(
-      (sum, a) => sum + (a.totalIssues || 0),
-      0
-    );
-    const autoFixable = analyses.reduce(
-      (sum, a) => sum + (a.autoFixableCount || 0),
-      0
-    );
+    const totalIssues = analyses.reduce((sum, a) => sum + (a.totalIssues || 0), 0);
+    const autoFixable = analyses.reduce((sum, a) => sum + (a.autoFixableCount || 0), 0);
 
     const comment = `## 🔍 RepoLens Review
 

@@ -20,7 +20,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <nav className="w-64 border-r border-border bg-card p-6">
         <h1 className="mb-8 text-2xl font-bold text-foreground">RepoLens</h1>
         <ul className="space-y-2">
-          {navItems.map(item => (
+          {navItems.map((item) => (
             <li key={item.href}>
               <Link
                 href={item.href}

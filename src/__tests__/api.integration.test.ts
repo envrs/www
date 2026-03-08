@@ -9,10 +9,7 @@ describe('Webhook Security', () => {
   it('should validate GitHub webhook signatures', () => {
     const payload = 'test payload';
     const crypto = require('crypto');
-    const hash = crypto
-      .createHmac('sha256', secret)
-      .update(payload)
-      .digest('hex');
+    const hash = crypto.createHmac('sha256', secret).update(payload).digest('hex');
     const signature = `sha256=${hash}`;
 
     expect(() =>
@@ -98,9 +95,7 @@ describe('GitHub Webhook Payload Validation', () => {
       },
     };
 
-    expect(() => validation.validateGitHubPayload(payload)).toThrow(
-      ValidationError
-    );
+    expect(() => validation.validateGitHubPayload(payload)).toThrow(ValidationError);
   });
 
   it('should reject missing pull_request', () => {

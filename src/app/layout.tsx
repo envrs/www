@@ -16,16 +16,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.className} ${geistMono.className} antialiased`}
-      >
+      <body className={`${geistSans.className} ${geistMono.className} antialiased`}>
         {children}
       </body>
     </html>

@@ -55,11 +55,10 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="container py-20 text-center">
-        <h2 className="text-5xl font-bold text-foreground">
-          Autonomous AI-Powered Code Reviews
-        </h2>
+        <h2 className="text-5xl font-bold text-foreground">Autonomous AI-Powered Code Reviews</h2>
         <p className="mt-4 text-xl text-muted-foreground">
-          Analyze pull requests across multiple dimensions: quality, security, performance, architecture, linting, and documentation.
+          Analyze pull requests across multiple dimensions: quality, security, performance,
+          architecture, linting, and documentation.
         </p>
         <div className="mt-8 flex justify-center gap-4">
           <Link href="/dashboard">
@@ -80,16 +79,12 @@ export default function HomePage() {
             Comprehensive Analysis
           </h3>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {features.map(feature => (
+            {features.map((feature) => (
               <Card key={feature.title}>
                 <CardContent className="text-center">
                   <div className="mb-4 text-4xl">{feature.icon}</div>
-                  <h4 className="mb-2 text-lg font-semibold text-foreground">
-                    {feature.title}
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    {feature.description}
-                  </p>
+                  <h4 className="mb-2 text-lg font-semibold text-foreground">{feature.title}</h4>
+                  <p className="text-sm text-muted-foreground">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -99,9 +94,7 @@ export default function HomePage() {
 
       {/* CTA Section */}
       <section className="container py-20 text-center">
-        <h3 className="text-3xl font-bold text-foreground">
-          Ready to improve your code quality?
-        </h3>
+        <h3 className="text-3xl font-bold text-foreground">Ready to improve your code quality?</h3>
         <p className="mt-4 text-muted-foreground">
           Connect your GitHub organization and start getting AI-powered reviews on every PR.
         </p>

@@ -11,10 +11,7 @@ export async function POST(request: NextRequest) {
     const { patch_id, pr_id, approve } = await request.json();
 
     if (!patch_id || !pr_id) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const supabase = await getSupabaseServiceClient();
@@ -27,10 +24,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (patchError || !patch) {
-      return NextResponse.json(
-        { error: 'Patch not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Patch not found' }, { status: 404 });
     }
 
     // Fetch PR details
@@ -41,18 +35,12 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (prError || !pr) {
-      return NextResponse.json(
-        { error: 'PR not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'PR not found' }, { status: 404 });
     }
 
     // If not approved, just update status to suggested
     if (!approve) {
-      await supabase
-        .from('autofix_patches')
-        .update({ status: 'suggested' })
-        .eq('id', patch_id);
+      await supabase.from('autofix_patches').update({ status: 'suggested' }).eq('id', patch_id);
 
       return NextResponse.json(
         { status: 'suggested', message: 'Patch marked as suggested' },
@@ -66,12 +54,7 @@ export async function POST(request: NextRequest) {
 
     let currentContent: string;
     try {
-      currentContent = await github.getFileContent(
-        org,
-        repo,
-        patch.file_path,
-        pr.head_sha
-      );
+      currentContent = await github.getFileContent(org, repo, patch.file_path, pr.head_sha);
     } catch (error) {
       return NextResponse.json(
         { error: `Could not fetch file: ${patch.file_path}` },
@@ -138,23 +121,14 @@ export async function DELETE(request: NextRequest) {
     const { patch_id } = await request.json();
 
     if (!patch_id) {
-      return NextResponse.json(
-        { error: 'Missing patch_id' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing patch_id' }, { status: 400 });
     }
 
     const supabase = await getSupabaseServiceClient();
 
-    await supabase
-      .from('autofix_patches')
-      .update({ status: 'rejected' })
-      .eq('id', patch_id);
+    await supabase.from('autofix_patches').update({ status: 'rejected' }).eq('id', patch_id);
 
-    return NextResponse.json(
-      { status: 'rejected', message: 'Patch rejected' },
-      { status: 200 }
-    );
+    return NextResponse.json({ status: 'rejected', message: 'Patch rejected' }, { status: 200 });
   } catch (error) {
     console.error('[v0] Patch rejection error:', error);
     return NextResponse.json(

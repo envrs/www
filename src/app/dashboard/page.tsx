@@ -39,9 +39,9 @@ export default async function DashboardPage() {
 
   const stats = {
     totalPRs: prs.length,
-    completedPRs: prs.filter(p => p.status === 'completed').length,
-    criticalIssues: findings.filter(f => f.severity === 'critical').length,
-    highIssues: findings.filter(f => f.severity === 'high').length,
+    completedPRs: prs.filter((p) => p.status === 'completed').length,
+    criticalIssues: findings.filter((f) => f.severity === 'critical').length,
+    highIssues: findings.filter((f) => f.severity === 'high').length,
   };
 
   return (
@@ -109,7 +109,9 @@ export default async function DashboardPage() {
                     className="flex items-center justify-between pb-4 border-b border-border last:border-0 last:pb-0"
                   >
                     <div className="space-y-1">
-                      <p className="font-semibold text-foreground text-sm leading-tight">{pr.title}</p>
+                      <p className="font-semibold text-foreground text-sm leading-tight">
+                        {pr.title}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         #{pr.number} by {pr.author} • {new Date(pr.created_at).toLocaleDateString()}
                       </p>

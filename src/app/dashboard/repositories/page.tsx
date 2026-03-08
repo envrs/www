@@ -16,7 +16,7 @@ export default async function RepositoriesPage() {
 
   // Get stats for each repo
   const repoStats = await Promise.all(
-    (repos || []).map(async repo => {
+    (repos || []).map(async (repo) => {
       const { count: prCount } = await supabase
         .from('pull_requests')
         .select('*', { count: 'exact' })
@@ -42,14 +42,12 @@ export default async function RepositoriesPage() {
       <div className="space-y-8">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Repositories</h1>
-          <p className="mt-2 text-muted-foreground">
-            Monitored GitHub repositories
-          </p>
+          <p className="mt-2 text-muted-foreground">Monitored GitHub repositories</p>
         </div>
 
         {repoStats && repoStats.length > 0 ? (
           <div className="space-y-4">
-            {repoStats.map(repo => (
+            {repoStats.map((repo) => (
               <Card key={`${repo.org}/${repo.name}`}>
                 <CardContent className="pt-0">
                   <div className="flex items-center justify-between">

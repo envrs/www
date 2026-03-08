@@ -14,9 +14,7 @@ export default function SettingsPage() {
       <div className="space-y-8">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-          <p className="mt-2 text-muted-foreground">
-            Configure RepoLens for your organization
-          </p>
+          <p className="mt-2 text-muted-foreground">Configure RepoLens for your organization</p>
         </div>
 
         {/* LLM Provider Settings */}
@@ -26,7 +24,7 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {providers.map(provider => (
+              {providers.map((provider) => (
                 <div
                   key={provider.name}
                   className="flex items-center justify-between rounded-lg border border-border p-4"
@@ -35,9 +33,7 @@ export default function SettingsPage() {
                     <p className="font-medium text-foreground">{provider.name}</p>
                     <p className="text-sm text-muted-foreground">{provider.model}</p>
                   </div>
-                  <Badge
-                    variant={provider.status === 'connected' ? 'default' : 'secondary'}
-                  >
+                  <Badge variant={provider.status === 'connected' ? 'default' : 'secondary'}>
                     {provider.status}
                   </Badge>
                 </div>
@@ -60,7 +56,7 @@ export default function SettingsPage() {
                 { name: 'Architecture', enabled: true },
                 { name: 'Linting', enabled: true },
                 { name: 'Documentation', enabled: true },
-              ].map(analyzer => (
+              ].map((analyzer) => (
                 <label
                   key={analyzer.name}
                   className="flex items-center gap-3 rounded-lg border border-border p-3"
@@ -98,8 +94,7 @@ export default function SettingsPage() {
                   • Pull request opened
                   <br />
                   • Pull request synchronize
-                  <br />
-                  • Pull request reopened
+                  <br />• Pull request reopened
                 </p>
               </div>
             </div>

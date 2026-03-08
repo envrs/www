@@ -15,7 +15,7 @@ export default async function OrganizationsPage() {
 
   // Get stats for each org
   const orgStats = await Promise.all(
-    (orgs || []).map(async org => {
+    (orgs || []).map(async (org) => {
       const { count: prCount } = await supabase
         .from('pull_requests')
         .select('*', { count: 'exact' })
@@ -38,25 +38,19 @@ export default async function OrganizationsPage() {
       <div className="space-y-8">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Organizations</h1>
-          <p className="mt-2 text-muted-foreground">
-            Connected GitHub organizations
-          </p>
+          <p className="mt-2 text-muted-foreground">Connected GitHub organizations</p>
         </div>
 
         {orgStats && orgStats.length > 0 ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {orgStats.map(org => (
+            {orgStats.map((org) => (
               <Card key={org.name}>
                 <CardContent>
                   <h3 className="text-lg font-semibold text-foreground">{org.name}</h3>
                   <p className="mt-4 text-sm text-muted-foreground">
                     {org.prs} pull requests analyzed
                   </p>
-                  <Button
-                    variant="outline"
-                    className="mt-4 w-full"
-                    disabled
-                  >
+                  <Button variant="outline" className="mt-4 w-full" disabled>
                     Connect
                   </Button>
                 </CardContent>

@@ -19,10 +19,7 @@ export async function GET(request: NextRequest) {
     const state = searchParams.get('state');
 
     if (!code) {
-      return NextResponse.json(
-        { error: 'Missing authorization code' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing authorization code' }, { status: 400 });
     }
 
     console.log('[v0] GitHub OAuth callback received');
@@ -57,10 +54,7 @@ export async function GET(request: NextRequest) {
 
     // Create session cookie and redirect
     const env = getEnv();
-    const response = NextResponse.redirect(
-      `${env.NEXTAUTH_URL}/dashboard`,
-      { status: 302 }
-    );
+    const response = NextResponse.redirect(`${env.NEXTAUTH_URL}/dashboard`, { status: 302 });
 
     // Store session token in secure HTTP-only cookie
     response.cookies.set({
@@ -76,9 +70,8 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[v0] GitHub OAuth error:', error);
 
-    return NextResponse.redirect(
-      `${process.env.NEXTAUTH_URL}/auth/signin?error=oauth_failed`,
-      { status: 302 }
-    );
+    return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/auth/signin?error=oauth_failed`, {
+      status: 302,
+    });
   }
 }

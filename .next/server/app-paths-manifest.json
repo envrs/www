@@ -1,16 +1,1 @@
-{
-  "/api/analyze/route": "app/api/analyze/route.js",
-  "/api/auth/github/callback/route": "app/api/auth/github/callback/route.js",
-  "/api/issues/create/route": "app/api/issues/create/route.js",
-  "/api/issues/route": "app/api/issues/route.js",
-  "/api/patches/apply/route": "app/api/patches/apply/route.js",
-  "/api/webhook/route": "app/api/webhook/route.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/dashboard/organizations/page": "app/dashboard/organizations/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/dashboard/repositories/page": "app/dashboard/repositories/page.js",
-  "/dashboard/reviews/[id]/page": "app/dashboard/reviews/[id]/page.js",
-  "/dashboard/reviews/page": "app/dashboard/reviews/page.js",
-  "/dashboard/settings/page": "app/dashboard/settings/page.js",
-  "/page": "app/page.js"
-}
+{}

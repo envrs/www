@@ -8,10 +8,7 @@ export async function POST(request: NextRequest) {
     const { prId, org, repo, findings, prNumber } = body;
 
     if (!prId || !org || !repo || !findings) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const supabase = getSupabaseServer();
@@ -19,8 +16,8 @@ export async function POST(request: NextRequest) {
     const createdIssues: any[] = [];
 
     // Group findings by severity
-    const critical = findings.filter(f => f.severity === 'critical');
-    const high = findings.filter(f => f.severity === 'high');
+    const critical = findings.filter((f) => f.severity === 'critical');
+    const high = findings.filter((f) => f.severity === 'high');
 
     // Create GitHub issues for critical and high severity findings
     for (const finding of [...critical, ...high]) {
@@ -43,13 +40,7 @@ ${finding.recommendation || 'Please review and fix this issue.'}
 ---
 Found in PR #${prNumber}`;
 
-        await github.createIssue(
-          org,
-          repo,
-          title,
-          body,
-          [finding.severity, finding.analyzer]
-        );
+        await github.createIssue(org, repo, title, body, [finding.severity, finding.analyzer]);
 
         // Store issue reference in database
         const { data } = await supabase

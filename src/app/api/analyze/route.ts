@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     // Generate autofix patches
     const patches = await autofixEngine.generatePatches(
-      analysisResults.analyses.flatMap(a => a.findings),
+      analysisResults.analyses.flatMap((a) => a.findings),
       code,
       files[0]
     );

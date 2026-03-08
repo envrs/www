@@ -7,21 +7,11 @@ import { createGitHubClient } from '@/lib/github/client';
  */
 export async function POST(request: NextRequest) {
   try {
-    const {
-      finding_id,
-      pr_id,
-      title,
-      description,
-      severity,
-      file_path,
-      line_number,
-    } = await request.json();
+    const { finding_id, pr_id, title, description, severity, file_path, line_number } =
+      await request.json();
 
     if (!finding_id || !pr_id || !title) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const supabase = await getSupabaseServiceClient();
@@ -34,10 +24,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (prError || !pr) {
-      return NextResponse.json(
-        { error: 'PR not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'PR not found' }, { status: 404 });
     }
 
     // Create issue on GitHub
@@ -61,11 +48,7 @@ ${description || 'No additional description provided'}
 *This issue was automatically created by RepoLens based on code review findings.*
 `;
 
-    const labels = [
-      'automated',
-      `severity-${severity}`,
-      'code-review',
-    ];
+    const labels = ['automated', `severity-${severity}`, 'code-review'];
 
     await github.createIssue(org, repo, title, issueBody, labels);
 
@@ -87,17 +70,11 @@ ${description || 'No additional description provided'}
 
     if (issueError) {
       console.error('[v0] Error storing issue:', issueError);
-      return NextResponse.json(
-        { error: 'Failed to store issue record' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to store issue record' }, { status: 500 });
     }
 
     // Update finding to mark issue created
-    await supabase
-      .from('findings')
-      .update({ issue_created: true })
-      .eq('id', finding_id);
+    await supabase.from('findings').update({ issue_created: true }).eq('id', finding_id);
 
     return NextResponse.json(
       {
@@ -124,10 +101,7 @@ export async function PATCH(request: NextRequest) {
     const { finding_id, status } = await request.json();
 
     if (!finding_id || !status) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const supabase = await getSupabaseServiceClient();
@@ -139,10 +113,7 @@ export async function PATCH(request: NextRequest) {
       .eq('finding_id', finding_id);
 
     if (updateError) {
-      return NextResponse.json(
-        { error: 'Failed to update issue' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to update issue' }, { status: 500 });
     }
 
     return NextResponse.json(

@@ -27,14 +27,15 @@ export default async function ReviewDetailPage({ params }: { params: { id: strin
     .order('analyzer');
 
   // Group findings by analyzer
-  const findingsByAnalyzer = findings?.reduce((acc: any, finding) => {
-    const analyzer = finding.analyzer;
-    if (!acc[analyzer]) {
-      acc[analyzer] = [];
-    }
-    acc[analyzer].push(finding);
-    return acc;
-  }, {}) || {};
+  const findingsByAnalyzer =
+    findings?.reduce((acc: any, finding) => {
+      const analyzer = finding.analyzer;
+      if (!acc[analyzer]) {
+        acc[analyzer] = [];
+      }
+      acc[analyzer].push(finding);
+      return acc;
+    }, {}) || {};
 
   const severityColors = {
     critical: 'destructive',
@@ -76,16 +77,12 @@ export default async function ReviewDetailPage({ params }: { params: { id: strin
               <div>
                 <p className="text-sm text-muted-foreground">Reviewed</p>
                 <p className="font-medium text-foreground">
-                  {pr.reviewed_at
-                    ? new Date(pr.reviewed_at).toLocaleDateString()
-                    : 'Pending'}
+                  {pr.reviewed_at ? new Date(pr.reviewed_at).toLocaleDateString() : 'Pending'}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Head SHA</p>
-                <p className="font-mono text-sm text-foreground">
-                  {pr.head_sha.substring(0, 7)}
-                </p>
+                <p className="font-mono text-sm text-foreground">{pr.head_sha.substring(0, 7)}</p>
               </div>
             </div>
           </CardContent>
@@ -105,7 +102,10 @@ export default async function ReviewDetailPage({ params }: { params: { id: strin
                   <CardTitle className="capitalize">{analyzer} Analyzer</CardTitle>
                   <div className="flex gap-2">
                     {Object.entries(severityCount).map(([severity, count]: [string, any]) => (
-                      <Badge key={severity} variant={severityColors[severity as keyof typeof severityColors] as any}>
+                      <Badge
+                        key={severity}
+                        variant={severityColors[severity as keyof typeof severityColors] as any}
+                      >
                         {severity}: {count}
                       </Badge>
                     ))}
@@ -115,23 +115,24 @@ export default async function ReviewDetailPage({ params }: { params: { id: strin
               <CardContent>
                 <div className="space-y-4">
                   {analyzerFindings.map((finding, idx) => (
-                    <div
-                      key={idx}
-                      className="border-l-4 border-accent bg-secondary p-4 rounded"
-                    >
+                    <div key={idx} className="border-l-4 border-accent bg-secondary p-4 rounded">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <Badge variant={severityColors[finding.severity as keyof typeof severityColors] as any}>
+                            <Badge
+                              variant={
+                                severityColors[
+                                  finding.severity as keyof typeof severityColors
+                                ] as any
+                              }
+                            >
                               {finding.severity}
                             </Badge>
                             <span className="font-mono text-xs text-muted-foreground">
                               {finding.file}:{finding.line}
                             </span>
                           </div>
-                          <p className="mt-2 font-medium text-foreground">
-                            {finding.message}
-                          </p>
+                          <p className="mt-2 font-medium text-foreground">{finding.message}</p>
                           {finding.data?.description && (
                             <p className="mt-2 text-sm text-muted-foreground">
                               {finding.data.description}
