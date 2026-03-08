@@ -3,124 +3,207 @@ import {
   verifyWebhookSignature,
   parseWebhookPayload,
   isRelevantPREvent,
+  extractPRMetadata,
 } from '@/lib/github/webhook';
-import { createGitHubClient } from '@/lib/github/client';
+import { getPR, postReview } from '@/lib/github/client';
 import { runAllAnalyzers } from '@/lib/analyzers';
-import { getSupabaseServer } from '@/lib/supabase/server';
+import {
+  getSupabaseServer,
+  createPullRequest,
+  createFinding,
+  updatePullRequestStatus,
+} from '@/lib/supabase/server';
 import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
+import { validateGitHubPayload } from '@/lib/validation';
+import { AppError } from '@/lib/errors';
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
-    // Verify webhook signature
+    // Step 1: Verify webhook signature
     const signature = request.headers.get('x-hub-signature-256');
     if (!signature) {
-      return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
+      logger.warn('Webhook missing signature');
+      return NextResponse.json(
+        { error: 'Missing X-Hub-Signature-256 header' },
+        { status: 401 }
+      );
     }
 
     const payload = await request.text();
     if (!verifyWebhookSignature(payload, signature)) {
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+      logger.warn('Webhook signature verification failed');
+      return NextResponse.json(
+        { error: 'Invalid signature' },
+        { status: 401 }
+      );
     }
 
+    // Step 2: Parse and validate webhook payload
     const webhookPayload = parseWebhookPayload(payload);
+    
+    try {
+      validateGitHubPayload(webhookPayload);
+    } catch (error) {
+      logger.warn('Webhook payload validation failed', {}, error as Error);
+      return NextResponse.json(
+        { error: 'Invalid webhook payload' },
+        { status: 400 }
+      );
+    }
 
-    // Only process relevant PR events
+    // Step 3: Check if this is a relevant PR event
     if (!isRelevantPREvent(webhookPayload)) {
+      logger.info('Skipping non-relevant webhook event', { action: webhookPayload.action });
       return NextResponse.json({ status: 'skipped' });
     }
 
-    const pr = webhookPayload.pull_request!;
-    const repo = webhookPayload.repository!;
-    const org = webhookPayload.organization?.login || repo.owner.login;
+    // Step 4: Extract PR metadata
+    const prMetadata = extractPRMetadata(webhookPayload);
+    const context = {
+      orgId: prMetadata.org,
+      repoId: prMetadata.repo,
+      prId: String(prMetadata.prNumber),
+    };
 
-    // Store PR in database
-    const supabase = getSupabaseServer();
-    const github = createGitHubClient();
+    logger.info('Processing webhook', context);
 
-    // Fetch full PR details
-    const prDetails = await github.getPR(org, repo.name, pr.number);
-
-    // Create PR record
-    const { data: prRecord } = await supabase
-      .from('pull_requests')
-      .insert({
-        org_name: org,
-        repo_name: repo.name,
-        pr_number: pr.number,
-        title: pr.title,
-        body: pr.body,
-        author: pr.user.login,
-        url: `https://github.com/${org}/${repo.name}/pull/${pr.number}`,
-        status: 'analyzing',
-        head_sha: pr.head.sha,
-      })
-      .select()
-      .single();
-
-    console.log('[v0] PR record created:', prRecord?.id);
-
-    // Analyze each file
-    const analyses: any[] = [];
-    for (const file of prDetails.files) {
-      if (!file.patch) continue;
-
-      // Run analyzers
-      const result = await runAllAnalyzers([file.filename], file.patch);
-
-      // Store each finding
-      for (const analysis of result.analyses) {
-        for (const finding of analysis.findings) {
-          await supabase.from('findings').insert({
-            pr_id: prRecord?.id,
-            analyzer: analysis.analyzer,
-            severity: finding.severity,
-            message: finding.message,
-            file: file.filename,
-            line: finding.line,
-            data: finding,
-          });
-        }
-      }
-
-      analyses.push(result);
+    // Step 5: Fetch full PR details
+    let prDetails;
+    try {
+      prDetails = await getPR(
+        prMetadata.org,
+        prMetadata.repo,
+        prMetadata.prNumber
+      );
+    } catch (error) {
+      logger.error('Failed to fetch PR details', context, error as Error);
+      throw new AppError('GITHUB_ERROR', 'Failed to fetch PR details', 502);
     }
 
-    // Update PR status
-    await supabase
-      .from('pull_requests')
-      .update({
-        status: 'reviewed',
-        reviewed_at: new Date().toISOString(),
-      })
-      .eq('id', prRecord?.id);
+    // Step 6: Create PR record in database
+    const supabase = await getSupabaseServer();
+    let prRecord;
+    try {
+      prRecord = await createPullRequest({
+        org_name: prMetadata.org,
+        repo_name: prMetadata.repo,
+        number: prMetadata.prNumber,
+        title: prMetadata.title,
+        body: prMetadata.body,
+        author: prMetadata.author,
+        url: prMetadata.htmlUrl,
+        status: 'analyzing',
+        head_sha: prMetadata.headSha,
+      });
+    } catch (error) {
+      logger.error('Failed to create PR record', context, error as Error);
+      throw new AppError('DB_ERROR', 'Failed to store PR data', 500);
+    }
 
-    // Post summary comment
-    const totalIssues = analyses.reduce((sum, a) => sum + (a.totalIssues || 0), 0);
-    const autoFixable = analyses.reduce((sum, a) => sum + (a.autoFixableCount || 0), 0);
+    logger.info('PR record created', { ...context, prId: prRecord.id });
 
-    const comment = `## 🔍 RepoLens Review
+    // Step 7: Analyze each file
+    const { analyses, totalIssues, autoFixableCount } = await runAllAnalyzers(
+      prDetails.files.map((f: any) => f.filename),
+      prDetails.files.map((f: any) => f.patch || '').join('\n'),
+      context
+    );
 
-**Summary**: Analyzed ${prDetails.files.length} files
-- 🚨 Issues found: ${totalIssues}
-- 🔧 Auto-fixable: ${autoFixable}
+    // Step 8: Store findings in database
+    for (const analysis of analyses) {
+      for (const finding of analysis.findings) {
+        try {
+          await createFinding({
+            pr_id: prRecord.id,
+            analyzer: analysis.analyzer,
+            severity: finding.severity,
+            issue: finding.issue,
+            file_path: finding.filePath,
+            line_number: finding.lineNumber,
+            suggestion: finding.suggestion,
+            category: finding.category,
+          });
+        } catch (error) {
+          logger.warn('Failed to store finding', context, error as Error);
+          // Continue processing other findings
+        }
+      }
+    }
 
-**Analyzers Run**: Code Quality, Security, Performance, Architecture, Linting, Documentation
+    // Step 9: Update PR status to reviewed
+    try {
+      await updatePullRequestStatus(prRecord.id, 'completed');
+    } catch (error) {
+      logger.warn('Failed to update PR status', context, error as Error);
+    }
 
-[View full review details](${env.NEXT_PUBLIC_BASE_URL}/review/${prRecord?.id})`;
+    // Step 10: Post summary comment to PR
+    try {
+      const comment = `## 🔍 RepoLens Code Review
 
-    await github.postReview(org, repo.name, pr.number, comment);
+**Summary**: Analyzed ${prDetails.files.length} file(s)
+- **Issues Found**: ${totalIssues}
+- **Auto-fixable**: ${autoFixableCount}
 
-    return NextResponse.json({
-      status: 'analyzed',
-      prId: prRecord?.id,
-      filesAnalyzed: prDetails.files.length,
+**Analyzers Run**:
+- ✓ Security Analysis
+- ✓ Code Quality Review
+
+[View Full Review](${env.NEXT_PUBLIC_BASE_URL}/dashboard/reviews/${prRecord.id})`;
+
+      await postReview(
+        prMetadata.org,
+        prMetadata.repo,
+        prMetadata.prNumber,
+        comment
+      );
+    } catch (error) {
+      logger.warn('Failed to post review comment', context, error as Error);
+      // Non-critical failure
+    }
+
+    const duration = Date.now() - startTime;
+    logger.info('Webhook processing completed', {
+      ...context,
+      duration,
       totalIssues,
-      autoFixable,
+      autoFixableCount,
     });
-  } catch (error) {
-    console.error('[v0] Webhook error:', error);
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        status: 'analyzed',
+        prId: prRecord.id,
+        filesAnalyzed: prDetails.files.length,
+        totalIssues,
+        autoFixable: autoFixableCount,
+        duration,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    
+    if (error instanceof AppError) {
+      logger.error('Webhook error', { duration }, error);
+      return NextResponse.json(
+        {
+          error: error.message,
+          code: error.code,
+        },
+        { status: error.statusCode }
+      );
+    }
+
+    logger.error('Webhook error', { duration }, error as Error);
+    return NextResponse.json(
+      {
+        error: 'Internal server error',
+        code: 'INTERNAL_ERROR',
+      },
       { status: 500 }
     );
   }
